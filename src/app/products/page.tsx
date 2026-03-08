@@ -240,11 +240,9 @@ function ProductsContent() {
   );
 }
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   return (
-    <Suspense
-      fallback={<div className="container mx-auto px-4 py-8"><p>Loading...</p></div>}
-    >
+    <div className="container mx-auto px-4 py-8">
       <ProductsContent />
     </Suspense>
   );
