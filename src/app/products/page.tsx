@@ -44,7 +44,6 @@ function ProductsContent() {
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     let q = query(collection(firestore, 'products'));
-
     if (selectedCategories.length > 0) {
       q = query(q, where('category', 'in', selectedCategories));
     }
@@ -57,13 +56,11 @@ function ProductsContent() {
     if (selectedSizes.length > 0) {
       q = query(q, where('sizes', 'array-contains-any', selectedSizes));
     }
-
     if (sortBy === 'price-asc') {
       q = query(q, orderBy('price', 'asc'));
     } else if (sortBy === 'price-desc') {
       q = query(q, orderBy('price', 'desc'));
     }
-
     return q;
   }, [firestore, selectedCategories, priceRange, selectedSizes, sortBy]);
 
@@ -176,74 +173,3 @@ function ProductsContent() {
                           onCheckedChange={() => handleColorChange(color.name)}
                         />
                         <Label htmlFor={`color-${color.name}`} className="flex items-center gap-2">
-                          <span
-                            className="h-4 w-4 rounded-full border"
-                            style={{ backgroundColor: color.hex }}
-                          />
-                          {color.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        </aside>
-
-        <main className="lg:col-span-3">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <Input
-              placeholder="Search products..."
-              className="max-w-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {isLoading ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              <Skeleton className="h-96 w-full" />
-              <Skeleton className="h-96 w-full" />
-              <Skeleton className="h-96 w-full" />
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-20 col-span-full">
-                  <h2 className="font-headline text-2xl font-semibold">No products found</h2>
-                  <p className="mt-2 text-muted-foreground">Try adjusting your filters.</p>
-                </div>
-              )}
-            </>
-          )}
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function ProductsPageContent() {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <ProductsContent />
-    </Suspense>
-  );
-}
