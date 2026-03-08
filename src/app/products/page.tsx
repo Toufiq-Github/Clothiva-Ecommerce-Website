@@ -243,15 +243,7 @@ function ProductsContent() {
 export default function ProductsPage() {
   return (
     <Suspense
-      fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            <Skeleton className="h-96 w-full" />
-            <Skeleton className="h-96 w-full" />
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </div>
-      }
+      fallback={<div className="container mx-auto px-4 py-8"><p>Loading...</p></div>}
     >
       <ProductsContent />
     </Suspense>
