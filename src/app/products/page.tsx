@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function ProductsPageContent() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const { firestore } = useFirebase();
 
@@ -40,7 +40,7 @@ function ProductsPageContent() {
       setSelectedCategories([]);
     }
   }, [searchParams]);
-  
+
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     let q = query(collection(firestore, 'products'));
@@ -52,19 +52,16 @@ function ProductsPageContent() {
       q = query(q, where('price', '>=', priceRange[0]));
     }
     if (priceRange[1] < 30000) {
-        q = query(q, where('price', '<=', priceRange[1]));
+      q = query(q, where('price', '<=', priceRange[1]));
     }
     if (selectedSizes.length > 0) {
-        q = query(q, where('sizes', 'array-contains-any', selectedSizes));
+      q = query(q, where('sizes', 'array-contains-any', selectedSizes));
     }
-    
-    // Firestore doesn't support inequality filters on multiple fields, or complex array queries.
-    // Client-side filtering is needed for some criteria.
-    
+
     if (sortBy === 'price-asc') {
-        q = query(q, orderBy('price', 'asc'));
+      q = query(q, orderBy('price', 'asc'));
     } else if (sortBy === 'price-desc') {
-        q = query(q, orderBy('price', 'desc'));
+      q = query(q, orderBy('price', 'desc'));
     }
 
     return q;
@@ -83,7 +80,7 @@ function ProductsPageContent() {
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
   };
-  
+
   const handleColorChange = (color: string) => {
     setSelectedColors((prev) =>
       prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
@@ -97,7 +94,10 @@ function ProductsPageContent() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .filter((product) =>
-        selectedColors.length === 0 || selectedColors.some(color => product.colors.map(c => c.name).includes(color))
+        selectedColors.length === 0 ||
+        selectedColors.some((color) =>
+          product.colors.map((c) => c.name).includes(color)
+        )
       );
   }, [products, searchTerm, selectedColors]);
 
@@ -138,7 +138,7 @@ function ProductsPageContent() {
                       min={0}
                       max={30000}
                       step={1000}
-                      onValueCommit={(value) => setPriceRange([value[0] ?? 0, value[1] ?? 0])}
+                      onValueCommit={setPriceRange}
                     />
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>৳{priceRange[0]}</span>
@@ -153,7 +153,7 @@ function ProductsPageContent() {
                   <div className="flex flex-wrap gap-2">
                     {sizes.map((size) => (
                       <div key={size} className="flex items-center space-x-2">
-                         <Checkbox
+                        <Checkbox
                           id={`size-${size}`}
                           checked={selectedSizes.includes(size)}
                           onCheckedChange={() => handleSizeChange(size)}
@@ -167,7 +167,7 @@ function ProductsPageContent() {
               <AccordionItem value="color">
                 <AccordionTrigger className="font-semibold">Color</AccordionTrigger>
                 <AccordionContent>
-                   <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3">
                     {colors.map((color) => (
                       <div key={color.name} className="flex items-center space-x-2">
                         <Checkbox
@@ -176,7 +176,7 @@ function ProductsPageContent() {
                           onCheckedChange={() => handleColorChange(color.name)}
                         />
                         <Label htmlFor={`color-${color.name}`} className="flex items-center gap-2">
-                           <span
+                          <span
                             className="h-4 w-4 rounded-full border"
                             style={{ backgroundColor: color.hex }}
                           />
@@ -213,27 +213,27 @@ function ProductsPageContent() {
               </Select>
             </div>
           </div>
-           {isLoading ? (
-             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                <Skeleton className="h-96 w-full" />
-                <Skeleton className="h-96 w-full" />
-                <Skeleton className="h-96 w-full" />
-             </div>
-           ) : (
-            <>
+          {isLoading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-                ))}
+              <Skeleton className="h-96 w-full" />
+              <Skeleton className="h-96 w-full" />
+              <Skeleton className="h-96 w-full" />
             </div>
-            {filteredProducts.length === 0 && (
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+              {filteredProducts.length === 0 && (
                 <div className="text-center py-20 col-span-full">
-                    <h2 className="font-headline text-2xl font-semibold">No products found</h2>
-                    <p className="mt-2 text-muted-foreground">Try adjusting your filters.</p>
+                  <h2 className="font-headline text-2xl font-semibold">No products found</h2>
+                  <p className="mt-2 text-muted-foreground">Try adjusting your filters.</p>
                 </div>
-            )}
+              )}
             </>
-           )}
+          )}
         </main>
       </div>
     </div>
@@ -242,8 +242,18 @@ function ProductsPageContent() {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ProductsPageContent />
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
+      }
+    >
+      <ProductsContent />
     </Suspense>
   );
 }
