@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
-import React, { useState, useEffect } from "react"
+import React, { Suspense, useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { useToast } from "@/hooks/use-toast";
 
-export default function LoginPage() {
+function LoginForm() {
   const bgImage = PlaceHolderImages.find(p => p.id === 'login-bg');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,24 +32,24 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-        router.push(redirectUrl);
+      router.push(redirectUrl);
     }
   }, [user, isUserLoading, router, redirectUrl]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Please enter email and password.' });
-        return;
+      toast({ variant: 'destructive', title: 'Error', description: 'Please enter email and password.' });
+      return;
     }
     login(email, password);
   };
 
   if (isUserLoading || (!isUserLoading && user)) {
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <p>Loading...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
     );
   }
 
@@ -65,37 +65,37 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit}>
-                <div className="grid gap-4">
+              <div className="grid gap-4">
                 <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
+                  <Label htmlFor="email">Email</Label>
+                  <Input
                     id="email"
                     type="email"
                     placeholder="m@example.com"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    />
+                  />
                 </div>
                 <div className="grid gap-2">
-                    <div className="flex items-center">
+                  <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                     <Link
-                        href="/forgot-password"
-                        className="ml-auto inline-block text-sm underline"
+                      href="/forgot-password"
+                      className="ml-auto inline-block text-sm underline"
                     >
-                        Forgot your password?
+                      Forgot your password?
                     </Link>
-                    </div>
-                    <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </div>
+                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full">
-                    Login
+                  Login
                 </Button>
-                </div>
+              </div>
             </form>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Don&apos;t have an account?{' '}
               <Link href="/register" className="underline">
                 Sign up
               </Link>
@@ -115,5 +115,13 @@ export default function LoginPage() {
         )}
       </div>
     </div>
-  )
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
 }
